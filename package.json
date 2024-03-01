@@ -1,0 +1,11 @@
+{
+  "name": "spelling",
+  "version": "0.0.1",
+  "description": "Improve your English spelling with this beautiful app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
