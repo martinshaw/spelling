@@ -9,7 +9,7 @@ Modified: 2024-03-01T21:04:55.993Z
 Description: description
 */
 
-import wordlist from './wordlists/mit/10000-without-under-5-chars.json';
+import wordlist from './wordlists/mit/10000-over-4-chars.json';
 
 class SpellingApp {
     protected wordlistElement!: HTMLDivElement;

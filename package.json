@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "description": "Improve your English spelling with this beautiful web app",
   "scripts": {
-    "start": "parcel src/index.html",
-    "build": "parcel build src/index.html",
+    "start": "rimraf .parcel-cache && parcel src/index.html",
+    "build": "rimraf .parcel-cache && parcel build src/index.html",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Martin Shaw <hello@martinshaw.co>",
@@ -12,6 +12,7 @@
   "devDependencies": {
     "@parcel/transformer-sass": "^2.12.0",
     "parcel": "^2.12.0",
+    "rimraf": "^5.0.5",
     "typescript": "^5.3.3"
   },
   "dependencies": {
