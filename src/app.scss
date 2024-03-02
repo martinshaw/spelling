@@ -135,4 +135,12 @@ body {
       }
     }
   }
+
+  #score {
+    position: absolute;
+    right: 80px;
+    top: 50px;
+    opacity: 0.2;
+    font-size: 40pt;
+  }
 }

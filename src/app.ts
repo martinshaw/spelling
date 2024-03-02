@@ -17,45 +17,62 @@ class SpellingApp {
     protected entryFieldInputElement!: HTMLInputElement;
     protected entryStartElement!: HTMLDivElement;
     protected entryStartButtonElement!: HTMLButtonElement;
+    protected scoreElement!: HTMLDivElement;
 
     protected selectedWord: string | null = null;
     protected currentEntryFieldInputValue: string = '';
+
+    protected listenAgainCounter: number = 0;
+    protected score: number = 0;
 
     constructor() {
         this.addElements();
         this.addEventListeners();
     }
 
-    private focusEntryFieldInput() {
-        this.entryFieldInputElement.focus();
+    private addElement<TElementType extends HTMLElement>(selector: string, errorMessage: string, setterCallback: (element: TElementType) => void): void {
+        const element = document.querySelector<TElementType>(selector);
+        if (element === null) throw new Error(errorMessage);
+        setterCallback(element);
     }
 
-    private async getNewWord(): Promise<string> {    
-        return wordlist[Math.floor(Math.random() * wordlist.length)];
+    private addElements() {
+        this.addElement<HTMLDivElement>('div#wordlist', 'Wordlist element not found', (element) => this.wordlistElement = element);
+        this.addElement<HTMLDivElement>('#entry__field', 'Entry field element not found', (element) => this.entryFieldElement = element);
+        this.addElement<HTMLInputElement>('#entry__field input', 'Entry field input element not found', (element) => this.entryFieldInputElement = element);
+        this.addElement<HTMLDivElement>('#entry__start', 'Entry start element not found', (element) => this.entryStartElement = element);
+        this.addElement<HTMLButtonElement>('#entry__start button', 'Entry start button element not found', (element) => this.entryStartButtonElement = element);
+        this.addElement<HTMLDivElement>('#score', 'Score element not found', (element) => this.scoreElement = element);
     }
+
+    private addEventListeners() {
+        this.entryFieldInputElement.addEventListener('input', (event) => this.onEntryFieldInputValueChange((event.target as HTMLInputElement).value));
+        this.entryFieldInputElement.addEventListener('keyup', (event) => this.onEntryFieldInputKeyUpEvent(event));
+        this.entryFieldInputElement.addEventListener('blur', (event) => this.focusEntryFieldInput());
+        this.entryStartButtonElement.addEventListener('click', (event) => this.nextWord());
+    }
+
+    private focusEntryFieldInput = () => this.entryFieldInputElement.focus();
+
+    private getNewWord = () => wordlist[Math.floor(Math.random() * wordlist.length)];
 
     private speakSelectedWord() {
-        speechSynthesis.cancel();
-
         if (this.selectedWord === null) return;
 
-        const englishVoices = window.speechSynthesis.getVoices().filter(voice => voice.lang.startsWith('en-'));
-        const localEnglishVoices = englishVoices.sort((a, b) => (a.localService ? 0 : 1) - (b.localService ? 0 : 1));
+        speechSynthesis.cancel();
 
         const msg = new SpeechSynthesisUtterance();
-        msg.voice = localEnglishVoices[0];
-        msg.volume = .9; // 0 to 1
-        msg.rate = .8; // 0.1 to 10
-        msg.pitch = 1; // 0 to 2
+        msg.voice = speechSynthesis
+            .getVoices()
+            .filter(voice => voice.lang.startsWith('en-'))
+            .sort((a, b) => (a.localService ? 0 : 1) - (b.localService ? 0 : 1))[0];
+        msg.rate = 1;
         msg.text = this.selectedWord;
 
         speechSynthesis.speak(msg);
     }
 
-    private onNewWordSelected(word: string) {
-        this.selectedWord = word;
-        this.speakSelectedWord();
-    }
+    private onNewWordSelected = (word: string)  => this.selectedWord = word;
 
     private addSelectedWordToWordlist() {
         const wordElement = document.createElement('div');
@@ -65,86 +82,50 @@ class SpellingApp {
         this.wordlistElement.appendChild(wordElement);
     }
 
+    private increaseScore() {
+        this.score++;
+        this.scoreElement.textContent = this.score.toLocaleString();
+    }
+
     private onEntryFieldInputValueChange(value: string) {
         this.currentEntryFieldInputValue = value;
+        if (this.currentEntryFieldInputValue !== this.selectedWord) return;
 
-        if (this.currentEntryFieldInputValue === this.selectedWord) {
-            this.addSelectedWordToWordlist();
-            this.nextWord();
-        }
+        this.increaseScore();
+        this.addSelectedWordToWordlist();
+        this.nextWord();
     }
 
     private onEntryFieldInputKeyUpEvent(event: KeyboardEvent) {
-        event.preventDefault();
+        if (event.key !== 'ArrowDown') return;
+        if (this.listenAgainCounter > 0) return this.nextWord();
 
-        if (event.key === 'ArrowDown') this.speakSelectedWord();
+        this.listenAgainCounter++;
+        this.speakSelectedWord();
     }
 
-    private addElements() {
-        const wordlistElement = document.querySelector<HTMLDivElement>('div#wordlist');
-        if (wordlistElement === null) throw new Error('Wordlist element not found');
-        this.wordlistElement = wordlistElement;
-
-        const entryFieldElement = document.querySelector<HTMLDivElement>('#entry__field');
-        if (entryFieldElement === null) throw new Error('Entry field element not found');
-        this.entryFieldElement = entryFieldElement;
-
-        const entryFieldInputElement = document.querySelector<HTMLInputElement>('#entry__field input');
-        if (entryFieldInputElement === null) throw new Error('Entry field input element not found');
-        this.entryFieldInputElement = entryFieldInputElement;
-
-        const entryStartElement = document.querySelector<HTMLDivElement>('#entry__start');
-        if (entryStartElement === null) throw new Error('Entry start element not found');
-        this.entryStartElement = entryStartElement;
-
-        const entryStartButtonElement = document.querySelector<HTMLButtonElement>('#entry__start button');
-        if (entryStartButtonElement === null) throw new Error('Entry start button element not found');
-        this.entryStartButtonElement = entryStartButtonElement;
+    private resetEntryFieldInput() {
+        this.onEntryFieldInputValueChange('');
+        this.entryFieldInputElement.value = '';
     }
 
-    private addEventListeners() {
-        this.entryFieldInputElement.addEventListener(
-            'input', 
-            (event) => this.onEntryFieldInputValueChange((event.target as HTMLInputElement).value)
-        );
-
-        this.entryFieldInputElement.addEventListener(
-            'keyup',
-            (event) => this.onEntryFieldInputKeyUpEvent(event)
-        );
-
-        this.entryFieldInputElement.addEventListener(
-            'blur',
-            (event) => this.focusEntryFieldInput()
-        );
-
-        this.focusEntryFieldInput();
-
-        this.entryStartButtonElement.addEventListener(
-            'click',
-            (event) => this.nextWord()
-        );
-    }
-
-    private async nextWord() {
+    private nextWord() {
         if (this.selectedWord === null) {
             this.entryFieldElement.classList.remove('hidden');
             this.entryStartElement.classList.add('hidden');
         }
 
-        const word = await this.getNewWord();
+        this.listenAgainCounter = 0;
+        const word = this.getNewWord();
 
+        this.focusEntryFieldInput();
         this.onNewWordSelected(word);
-
-        this.onEntryFieldInputValueChange('');
-        this.entryFieldInputElement.value = '';
+        this.speakSelectedWord();
+        this.resetEntryFieldInput();
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    try {
-        new SpellingApp();
-    } catch (error) {
-        console.error(error);
-    }
+    try { new SpellingApp(); } 
+    catch (error) { console.error(error); }
 });
