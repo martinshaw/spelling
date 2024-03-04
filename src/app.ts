@@ -1,14 +1,3 @@
-/*
-All Rights Reserved, (c) 2024 Martin Shaw
-
-Author: Martin Shaw (developer@martinshaw.co)
-File Name: app.ts
-Created:  2024-03-01T21:04:55.992Z
-Modified: 2024-03-01T21:04:55.993Z
-
-Description: description
-*/
-
 import wordlist from './wordlists/mit/10000-over-4-chars.json';
 
 class SpellingApp {
@@ -48,17 +37,12 @@ class SpellingApp {
     private addEventListeners() {
         this.entryFieldInputElement.addEventListener('input', (event) => this.onEntryFieldInputValueChange((event.target as HTMLInputElement).value));
         this.entryFieldInputElement.addEventListener('keyup', (event) => this.onEntryFieldInputKeyUpEvent(event));
-        this.entryFieldInputElement.addEventListener('blur', (event) => this.focusEntryFieldInput());
+        this.entryFieldInputElement.addEventListener('blur', (event) => this.entryFieldInputElement?.focus());
         this.entryStartButtonElement.addEventListener('click', (event) => this.nextWord());
     }
 
-    private focusEntryFieldInput = () => this.entryFieldInputElement.focus();
-
-    private getNewWord = () => wordlist[Math.floor(Math.random() * wordlist.length)];
-
     private speakSelectedWord() {
         if (this.selectedWord === null) return;
-
         speechSynthesis.cancel();
 
         const msg = new SpeechSynthesisUtterance();
@@ -66,13 +50,10 @@ class SpellingApp {
             .getVoices()
             .filter(voice => voice.lang.startsWith('en-'))
             .sort((a, b) => (a.localService ? 0 : 1) - (b.localService ? 0 : 1))[0];
-        msg.rate = 1;
         msg.text = this.selectedWord;
 
         speechSynthesis.speak(msg);
     }
-
-    private onNewWordSelected = (word: string)  => this.selectedWord = word;
 
     private addSelectedWordToWordlist() {
         const wordElement = document.createElement('div');
@@ -116,10 +97,8 @@ class SpellingApp {
         }
 
         this.listenAgainCounter = 0;
-        const word = this.getNewWord();
-
-        this.focusEntryFieldInput();
-        this.onNewWordSelected(word);
+        this.entryFieldInputElement?.focus();
+        this.selectedWord = wordlist[Math.floor(Math.random() * wordlist.length)];
         this.speakSelectedWord();
         this.resetEntryFieldInput();
     }

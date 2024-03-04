@@ -8,7 +8,7 @@ You can try it out [here](https://martinshaw.github.io/spelling)
 
 # How it was made
 
-This Spelling game was made using simple HTML, SCSS and 130 lines of Vanilla TypeScript. 
+This Spelling game was made using simple HTML, SCSS and 110 lines of Vanilla TypeScript. 
 
 Then this is compiled into a tiny HTML, CSS and JS bundle using [Parcel](https://parceljs.org/).
 
